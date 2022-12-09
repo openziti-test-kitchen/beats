@@ -9,7 +9,7 @@ Note: Additional configuration is required to connect to collectors over OpenZit
 
 # Building Executables
 
-- Clone this repo to your/build machine.
+- Clone this repo to your/build machine. `zitify` [branch](https://github.com/openziti-test-kitchen/beats/tree/zitify)
 - Standard Go build process:
   ```console
   # example build filebeat binary
