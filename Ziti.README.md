@@ -29,7 +29,7 @@ Note: Additional configuration is required to connect to collectors over OpenZit
      setup. This approach will use app-embedded zero trust SDK.
    - decide how logstash service is hosted:
       - hosting tunneler
-      - zitified logstash beats pluging (link *TODO*)
+      - [zitified logstash beats pluging](https://github.com/openziti-test-kitchen/logstash-input-zitibeats/tree/zitify)
    - on the beats client side the service should have an intercept configuration like this:
      ```json
      // intercept.v1
@@ -53,8 +53,31 @@ Note: Additional configuration is required to connect to collectors over OpenZit
            # The Logstash hosts
            hosts: ["beats.logstash.ziti:5044"]
      ```
+5. Full configuration script:
+   ```
+   ziti edge create config beats.logstash.intercept intercept.v1 '{
+    "protocols":["tcp"],
+    "addresses":["beats.logstash.ziti"],
+    "portRanges":[{"low":5044,"high":5044}]
+    }'
 
-5. Run zitified beats agent using the drop-in executable
+   # logstash/zitibeats service
+   ziti edge create service beats.logstash --configs beats.logstash.intercept
+
+   # logstash identity
+   ziti edge create identity user logstash -o logstash.jwt
+   ziti edge enroll -j logstash.jwt -o logstash.json
+
+   ziti edge create service-policy beats.logstash.bind Bind --service-roles="@beats.logstash" --identity-roles="@logstash"
+
+   ziti edge create service-policy beats.logstash.dial Dial --service-roles="@beats.logstash" --identity-roles="#beat-agent"
+
+   # create beats client identity
+   ziti edge create identity user beatz -o beatz.jwt -a beat-agent
+   ziti edge enroll -j beatz.jwt -o beatz.json
+
+   ```
+7. Run zitified beats agent using the drop-in executable
 ```console
 $ ZITI_IDENTITIES=beats.json filebeat -c filebeat.yml
 ```
